@@ -35,7 +35,13 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 				}
 			});
 		}
+
+		console.error(`Unknown Command ${name}`);
+		return res.status(400).json({ error: 'Unknown Command' });
 	}
+	console.error(`Unknown Interaction Type ${type}`);
+	return res.status(400).json({ error: 'Unknown Interaction Type' });
+
 })
 
 app.listen(PORT, () => {
