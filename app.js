@@ -7,6 +7,8 @@ import {
 	MessageComponentTypes,
 	verifyKeyMiddleware,
 } from 'discord-interactions';
+import { exec } from 'child_process';
+import { } from './commands.js';	// Print enabled commands before startup
 
 
 const app = express();
@@ -21,7 +23,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 	if (type === InteractionType.APPLICATION_COMMAND) {
 		const { name } = data;
 
-		if (name === 'test'){
+		if (name === 'test') {
 			return res.send({
 				type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 				data: {
@@ -32,6 +34,27 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 							content: 'kys',
 						}
 					]
+				}
+			});
+		}
+
+		if (name === 'serverstart') {
+			exec(`wakeonlan ${process.env.SERVER_MAC_ADDR}`, (err, stdout, stderr) => {
+				if (err) { console.log(`error: ${err}`); return res.status(500).json({ error: 'Internal Server Error' }); }
+				else if (stderr) { console.log(`stderr: ${stderr}`); return res.status(500).json({ error: 'Internal Server Error' }); }
+				else {
+					return res.send({
+						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+						data: {
+							flags: InteractionResponseFlags.IS_COMPONENTS_V2,
+							components: [
+								{
+									type: MessageComponentTypes.TEXT_DISPLAY,
+									content: 'Starting server machine!',
+								}
+							]
+						}
+					});	
 				}
 			});
 		}

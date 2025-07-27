@@ -12,6 +12,19 @@ const TEST_COMMAND = {
 	contexts: [0, 1, 2],
 };
 
-const ENABLE_COMMANDS = [TEST_COMMAND];
+const START_SERVER_COMMAND = {
+	name: 'serverstart',
+	description: 'Start the server machine',
+	type: 1,
+	integration_types: [0, 1],
+	contexts: [0, 1, 2],
+};
+
+const ENABLE_COMMANDS = [START_SERVER_COMMAND];
+
+console.log('Enabling commands:');
+ENABLE_COMMANDS.forEach((cmd) => {
+	console.log(`\t${cmd?.name}`);
+})
 
 InstallGlobalCommands(process.env.APP_ID, ENABLE_COMMANDS);

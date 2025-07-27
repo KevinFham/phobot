@@ -4,14 +4,15 @@
 	"description": "discord bot for controlling server",
 	"type": "module",
 	"engines": {
-		"node": ">=18.x"	
+		"node": ">=18.x"
 	},
 	"scripts": {
 		"register": "node commands.js"
 	},
 	"dependencies": {
-		"express": "^5.1.0",
+		"child_process": "^1.0.2",
+		"discord-interactions": "^4.3.0",
 		"dotenv": "^17.2.1",
-		"discord-interactions": "^4.3.0"
+		"express": "^5.1.0"
 	}
 }
