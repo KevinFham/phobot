@@ -42,21 +42,19 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 			exec(`wakeonlan ${process.env.SERVER_MAC_ADDR}`, (err, stdout, stderr) => {
 				if (err) { console.log(`error: ${err}`); return res.status(500).json({ error: 'Internal Server Error' }); }
 				else if (stderr) { console.log(`stderr: ${stderr}`); return res.status(500).json({ error: 'Internal Server Error' }); }
-				else {
-					return res.send({
-						type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-						data: {
-							flags: InteractionResponseFlags.IS_COMPONENTS_V2,
-							components: [
-								{
-									type: MessageComponentTypes.TEXT_DISPLAY,
-									content: 'Starting server machine!',
-								}
-							]
-						}
-					});	
-				}
 			});
+			return res.send({
+				type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+				data: {
+					flags: InteractionResponseFlags.IS_COMPONENTS_V2,
+					components: [
+						{
+							type: MessageComponentTypes.TEXT_DISPLAY,
+							content: 'Starting server machine!',
+						}
+					]
+				}
+			});	
 		}
 
 		console.error(`Unknown Command ${name}`);
