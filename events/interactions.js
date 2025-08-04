@@ -3,7 +3,6 @@ import { Events, MessageFlags } from 'discord.js';
 const name = Events.InteractionCreate;
 
 const execute = async interaction => {
-    console.log(interaction);
     if (!interaction.isChatInputCommand()) { console.log('Not a ChatInputCommand interaction. Returning.'); return; }
 
     const command = interaction.client.commands.get(interaction.commandName);

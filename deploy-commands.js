@@ -26,7 +26,6 @@ for (const folder of commandFolders) {
 		}
 	}
 }
-console.log(commands);
 
 // Send these commands to Discord and register them to the bot
 const rest = new REST().setToken(process.env.DISCORD_TOKEN);
@@ -34,6 +33,7 @@ const rest = new REST().setToken(process.env.DISCORD_TOKEN);
 (async () => {
     try {
         console.log(`Refreshing ${commands.length} application (/) commands...`);
+        commands.forEach(cmd => console.log(`- ${cmd.name}`));
         const data = await rest.put(
             deploymentRoute,
             { body: commands },
