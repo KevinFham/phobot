@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { exec } from 'child_process';
 import { SlashCommandBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
+import { exec_p } from '../../utils.js';
 
 const data = new SlashCommandBuilder()
                 .setName('serverstart')
@@ -9,13 +9,13 @@ const data = new SlashCommandBuilder()
                 .setContexts([ InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ]);
 
 async function execute (interaction) {
-    exec(`wakeonlan ${process.env.SERVER_MAC_ADDR}`, async (err, stdout, stderr) => {
-        if (err) { console.error(err); let _ = await interaction.reply('There was an error while executing this command!'); }
-		else if (stderr) { console.error(`[STDERR]: ${stderr}`); let _ = await interaction.reply('There was an error while executing this command!'); }
-        else {
-            await interaction.reply('Starting machine! View the status of the server with `/serverstatus` (not yet implemented)');
-        }
-    });
+    var { stdout, stderr } = await exec_p(`fping -c1 -t600 ${process.env.SERVER_IP_ADDR}`);
+    if (!stdout.includes("timed out")) {
+        await interaction.reply('The machine is already online! View status using `/serverstatus`');
+    } else {
+        var { stdout, stderr } = await exec_p(`wakeonlan ${process.env.SERVER_MAC_ADDR}`);
+        await interaction.reply('Starting machine! View the status of the server using `/serverstatus`');
+    }
 }
 
 export { data, execute };
