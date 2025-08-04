@@ -6,9 +6,10 @@
 	"engines": {
 		"node": ">=18.x"
 	},
-	"main": "main.js",
+	"main": "main.ts",
 	"scripts": {
-		"register": "node commands.js"
+		"register": "node deploy-commands.js",
+        "register-global": "node deploy-commands.js --global"
 	},
 	"dependencies": {
 		"child_process": "^1.0.2",
