@@ -16,7 +16,7 @@ const StatusDiscordEmoji = {
     "UNKNOWN": ":question:"
 }
 
-const SERVER_STATUS_REFRESH_MS = 10 * 1000;
+const SERVER_STATUS_REFRESH_MS = 2 * 1000;
 const STATUS_REFRESH_DURATION_MS = 5 * 60 * 1000;
 
 function printServerStatusResponse(statusObj){
