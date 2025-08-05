@@ -6,7 +6,7 @@
 	"engines": {
 		"node": ">=18.x"
 	},
-	"main": "main.ts",
+	"main": "main.js",
 	"scripts": {
 		"register": "node deploy-commands.js",
         "register-global": "node deploy-commands.js --global"

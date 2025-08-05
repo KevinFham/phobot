@@ -14,7 +14,7 @@ async function execute (interaction) {
         await interaction.reply('The machine is already online! View status using `/serverstatus`');
     } else {
         var { stdout, stderr } = await exec_p(`wakeonlan ${process.env.SERVER_MAC_ADDR}`);
-        await interaction.reply('Starting machine! View the status of the server using `/serverstatus`');
+        await interaction.reply('Starting machine! View status using `/serverstatus`');
     }
 }
 
