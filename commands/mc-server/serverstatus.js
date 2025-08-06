@@ -1,23 +1,26 @@
 import 'dotenv/config';
 import { SlashCommandBuilder, ContainerBuilder, ApplicationIntegrationType, InteractionContextType, MessageFlags } from 'discord.js';
-import { exec_p } from '../../utils.js'
+import { exec_p, parseConfig } from '../../utils.js'
+
+const cfg = parseConfig();
+const SERVER_STATUS_REFRESH_MS = cfg.msgRefreshRate.mcStatusRefreshInterval * 1000;
+const STATUS_REFRESH_DURATION_MS = cfg.msgRefreshRate.mcStatusRefreshDuration * 1000;
 
 const ServerStatus = {
     STOPPED: "STOPPED",
     STARTING: "STARTING",
     ACTIVE: "ACTIVE",
     UNKNOWN: "UNKNOWN",
+    ERROR: "ERROR",
 };
 
 const StatusDiscordEmoji = {
     "STOPPED": ":no_entry:",
     "STARTING": ":stopwatch:",
     "ACTIVE": ":white_check_mark:",
-    "UNKNOWN": ":question:"
+    "UNKNOWN": ":question:",
+    "ERROR": ":no_entry_sign:",
 }
-
-const SERVER_STATUS_REFRESH_MS = 2 * 1000;
-const STATUS_REFRESH_DURATION_MS = 5 * 60 * 1000;
 
 function printOnlinePlayers(statusObj){
     let responseStr = "";
@@ -33,7 +36,7 @@ function printOnlinePlayers(statusObj){
 
 const data = new SlashCommandBuilder()
                 .setName('serverstatus')
-                .setDescription('View the status of the minecraft server.')
+                .setDescription('View the live status of the minecraft server.')
                 .setIntegrationTypes([ ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall ])
                 .setContexts([ InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ]);
 
@@ -54,14 +57,19 @@ async function execute (interaction) {
         if (!stdout.includes("timed out")) {                // Machine is Up
             serverStatusObj.machineStatus = ServerStatus.ACTIVE;
 
-            var { stdout, stderr } = await exec_p(`ssh -t root@${process.env.SERVER_IP_ADDR} "docker container inspect -f '{{.State.Status}}, {{.State.Health}}' ${process.env.GOOPCRAFT_CONTAINER_NAME}"`);
-            if (stdout.includes("running") && stdout.includes("healthy")) {     // MC Server is up and running
+            var { stdout, stderr } = await exec_p(`ssh -t root@${process.env.SERVER_IP_ADDR} "docker container inspect -f '{{.State.Status}}, {{.State.Health}} exitcode{{.State.ExitCode}}' ${process.env.GOOPCRAFT_CONTAINER_NAME}"`);
+            if (stdout.includes("running") && stdout.includes("healthy")) {                     // MC Server is up and running
                 serverStatusObj.mcServerStatus = ServerStatus.ACTIVE;
                 var { stdout, stderr } = await exec_p(`ssh -t root@${process.env.SERVER_IP_ADDR} "docker exec ${process.env.GOOPCRAFT_CONTAINER_NAME} rcon-cli \"list\" | sed -e 's/\x1b\[[0-9;]*m//g' -e 's/^[0-9a-zA-Z ]*: '//g -e 's/ //g'"`);
                 serverStatusObj.mcServerPlayers = stdout.trim().split(",").filter(x => x);
-            } else if (stdout.includes("starting")) {                           // MC Server is booting up
+
+            } else if (stdout.includes("starting")) {                                           // MC Server is booting up
                 serverStatusObj.mcServerStatus = ServerStatus.STARTING;
-            } else if (stdout.includes("exited")) {                             // MC Server is shut down
+
+            } else if (!stdout.includes("exitcode137") && !stdout.includes("exitcode0")) {      // MC Server has an error
+                serverStatusObj.mcServerStatus = ServerStatus.ERROR;
+
+            } else if (stdout.includes("exited")) {                                             // MC Server is shut down
                 serverStatusObj.mcServerStatus = ServerStatus.STOPPED;
             } //else, MC Server status unknown
 
@@ -75,7 +83,7 @@ async function execute (interaction) {
             .setAccentColor(0x0099FF)
             .addTextDisplayComponents(
                 textDisplay => textDisplay
-                    .setContent(`**Goopcraft Server Status**`),
+                    .setContent(`**Goopcraft Server LIVE Status**`),
             )
             .addSeparatorComponents(separator => separator)
             .addSectionComponents(

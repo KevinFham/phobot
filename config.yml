@@ -1,0 +1,9 @@
+msgRefreshRate:
+  # In seconds
+  mcStatusRefreshInterval: 2
+  mcStatusRefreshDuration: 600
+serverStart:
+  # In seconds
+  delay: 10
+  mcStartPingInterval: 2
+  mcStartPingDuration: 180
