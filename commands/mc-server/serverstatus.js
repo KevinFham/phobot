@@ -44,7 +44,7 @@ async function execute (interaction) {
         mcServerPlayers: [],
     }
 
-    interaction.deferReply();
+    await interaction.deferReply();
 
     // Update response in a loop
     var refreshIntervalID = setInterval(async () => {
