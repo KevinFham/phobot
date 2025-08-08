@@ -9,7 +9,8 @@
 	"main": "main.js",
 	"scripts": {
 		"register": "node deploy-commands.js",
-		"register-global": "node deploy-commands.js --global"
+		"register-global": "node deploy-commands.js --global",
+        "deploy": "pm2 kill && pm2 start main.js && echo \"\nTo run the bot on machine startup, run: pm2 startup && pm2 save\n\""
 	},
 	"dependencies": {
 		"child_process": "^1.0.2",

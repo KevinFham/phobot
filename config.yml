@@ -1,7 +1,7 @@
 msgRefreshRate:
   # In seconds
   mcStatusRefreshInterval: 2
-  mcStatusRefreshDuration: 600
+  mcStatusRefreshDuration: 900
 serverStart:
   # In seconds
   delay: 10
