@@ -7,6 +7,16 @@ discord bot to mess with mc server
 | [Node.js](https://nodejs.org/en) | `node` | `>=v18.*.*` |
 | [Discord.js](https://discordjs.guide) | `discord.js` | `14.21.0` |
 
+## Deployment
+
+```bash
+git clone https://github.com/KevinFham/phobot.git
+pnpm install
+pnpm run register
+pm2 start .
+```
+
+
 ## Commands
 
 ### Discord Bot Interactions
