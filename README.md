@@ -25,6 +25,7 @@ pnpm run register
 pm2 start .
 ```
 
+Configure `config.yml` to change refresh rate values.
 
 ## Commands
 
