@@ -1,0 +1,18 @@
+# Set to an unused port btwn 1024-65535
+PORT=
+
+# Discord Bot Application values
+APP_ID=""
+PUBLIC_KEY=""
+DISCORD_TOKEN=""
+
+# Discord Server ID (Enable Developer Mode)
+GOOPSERVER_ID=""
+
+# Server Machine
+SERVER_MAC_ADDR=""
+SERVER_IP_ADDR=""
+
+# Goopcraft Minecraft Server Docker
+GOOPCRAFT_SERVER_ADDR=""
+GOOPCRAFT_CONTAINER_NAME=""
