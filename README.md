@@ -22,7 +22,10 @@ Then register the commands to discord and daemonize the bot:
 
 ```bash
 pnpm run register
-pm2 start .
+pm2 start main.js
+
+# Daemonize on startup (follow the instructions that appear in the console)
+pm2 startup
 ```
 
 Configure `config.yml` to change refresh rate values.
