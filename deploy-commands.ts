@@ -6,8 +6,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { REST, Routes } from 'discord.js';
 
 const GLOBAL_DEPLOY = process.argv.includes("--global");
+
+if (!process.env['APP_ID']) { console.log('Missing Env variable for APP_ID'); process.exit(0); }
+if (!process.env['DISCORD_TOKEN']) { console.log('Missing Env variable for DISCORD_TOKEN'); process.exit(0); }
+if (!process.env['DISCORD_SERVER_ID']) { console.log('Missing Env variable for DISCORD_SERVER_ID'); process.exit(0); }
+
+
 const deploymentRoute = GLOBAL_DEPLOY ?
-            Routes.applicationCommands(process.env.APP_ID) : Routes.applicationGuildCommands(process.env.APP_ID, process.env.GOOPSERVER_ID);
+            Routes.applicationCommands(process.env['APP_ID']) : Routes.applicationGuildCommands(process.env['APP_ID'], process.env['DISCORD_SERVER_ID']);
 
 // Gather All Commands from commands/ folder
 const commands = [];
@@ -15,7 +21,7 @@ const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 for (const folder of commandFolders) {
 	const commandsPath = path.join(foldersPath, folder);
-	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts'));
 	for (const file of commandFiles) {
 		const filePath = path.join(commandsPath, file);
 		const command = await import(filePath);
@@ -28,17 +34,21 @@ for (const folder of commandFolders) {
 }
 
 // Send these commands to Discord and register them to the bot
-const rest = new REST().setToken(process.env.DISCORD_TOKEN);
+const rest = new REST().setToken(process.env['DISCORD_TOKEN']);
 
 (async () => {
     try {
         console.log(`Refreshing ${commands.length} application (/) commands...`);
         commands.forEach(cmd => console.log(`- ${cmd.name}`));
-        const data = await rest.put(
+        const data  = await rest.put(
             deploymentRoute,
             { body: commands },
         );
-        console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+        if (data && 'length' in data) {
+            console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+        } else {
+            console.log('Something went wrong when loading commands');
+        }
     } catch (e) {
         console.error(e);
     }

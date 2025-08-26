@@ -3,24 +3,36 @@ import { fileURLToPath } from 'url';
 const fs = await import('node:fs');
 const path = await import('node:path');
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-import { Client, Collection, Events, GatewayIntentBits, MessageFlags } from 'discord.js';
+import { GatewayIntentBits } from 'discord.js';
+import { PhobotClient } from './PhobotClient.js';
 
+const FILE_EXTENSION = (process.env['NODE_ENV'] == 'development') ? '.ts' : '.js';
 
-const client = new Client({ intents: [
+const required = [];
+if (!process.env['APP_ID']) { required.push('APP_ID'); }
+if (!process.env['DISCORD_TOKEN']) { required.push('DISCORD_TOKEN'); }
+if (!process.env['PUBLIC_KEY']) { required.push('PUBLIC_KEY'); }
+if (required.length > 0) {
+    console.log('Missing Env variables for: ');
+    required.forEach(e => console.log(`- ${e}`))
+    process.exit(0);
+}
+
+const client = new PhobotClient({ intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
 ] });
 
+
 // Load Commands
-client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
 for (const folder of commandFolders) {
     const commandsPath = path.join(foldersPath, folder);
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(FILE_EXTENSION));
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
         const command = await import(filePath);
@@ -34,7 +46,7 @@ for (const folder of commandFolders) {
 
 // Load Events
 const eventsPath = path.join(__dirname, 'events');
-const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith(FILE_EXTENSION));
 
 for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
@@ -47,4 +59,4 @@ for (const file of eventFiles) {
 }
 
 // Bot Login
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env['DISCORD_TOKEN']);

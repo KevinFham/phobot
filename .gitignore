@@ -2,6 +2,7 @@
 config.yml
 
 # Build
+build/
 
 # Logs
 logs

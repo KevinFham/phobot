@@ -1,3 +1,4 @@
+import type { UserContextMenuCommandInteraction } from 'discord.js';
 import { SlashCommandBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
 
 const data = new SlashCommandBuilder()
@@ -6,7 +7,7 @@ const data = new SlashCommandBuilder()
                 .setIntegrationTypes([ ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall ])
                 .setContexts([ InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ]);
 
-async function execute (interaction) {
+async function execute (interaction: UserContextMenuCommandInteraction) {
     await interaction.reply('Pong!');
 }
 
