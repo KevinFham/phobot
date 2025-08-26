@@ -6,14 +6,11 @@ msgRefreshRate:
 
 # REST API Server Config
 apiServer:
-  serverHostName: ''
+  serverHostName: 'localhost'
 
 # Minecraft Server Config
 mcServer:
-  serverMacAddr: ''
-  serverHostName: ''
-  mcServerAddr: ''
-  mcServerContainerName: ''
+  mcServerAddr: 'play.addr.mc'
   serverStart:
     # In seconds
     delay: 10
