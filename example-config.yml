@@ -1,0 +1,21 @@
+# Live Message Update Config
+msgRefreshRate:
+  # In seconds
+  mcStatusRefreshInterval: 2
+  mcStatusRefreshDuration: 900
+
+# REST API Server Config
+apiServer:
+  serverHostName: ''
+
+# Minecraft Server Config
+mcServer:
+  serverMacAddr: ''
+  serverHostName: ''
+  mcServerAddr: ''
+  mcServerContainerName: ''
+  serverStart:
+    # In seconds
+    delay: 10
+    mcStartPingInterval: 5
+    mcStartPingDuration: 180

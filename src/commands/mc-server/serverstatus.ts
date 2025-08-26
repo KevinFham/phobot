@@ -24,7 +24,7 @@ const StatusDiscordEmoji = {
     "ERROR": ":no_entry_sign:",
 }
 
-function printOnlinePlayers( statusObj: {machineStatus: ServerStatus, mcServerStatus: ServerStatus, mcServerPlayers: string[] } ) {
+function printOnlinePlayers( statusObj: { machineStatus: ServerStatus, mcServerStatus: ServerStatus, mcServerPlayers: string[] } ) {
     let responseStr = "";
     if (statusObj.mcServerStatus == ServerStatus.ACTIVE) {
         if (statusObj.mcServerPlayers.length > 0) {
@@ -35,6 +35,7 @@ function printOnlinePlayers( statusObj: {machineStatus: ServerStatus, mcServerSt
     }
     return responseStr;
 }
+
 
 const data = new SlashCommandBuilder()
                 .setName('serverstatus')
@@ -69,7 +70,7 @@ async function execute (interaction: UserContextMenuCommandInteraction) {
 
             if (res.serverStat.includes("running")) {
                 serverStatusObj.mcServerStatus = ServerStatus.ACTIVE;
-                serverStatusObj.mcServerPlayers = ["test", "test2"];
+                serverStatusObj.mcServerPlayers = res.players;
 
             } else if (res.serverStat.includes("starting")) {
                 serverStatusObj.mcServerStatus = ServerStatus.STARTING;
@@ -112,6 +113,7 @@ async function execute (interaction: UserContextMenuCommandInteraction) {
                 textDisplay => textDisplay
                     .setContent("**Currently Online**" + printOnlinePlayers(serverStatusObj)),
             );
+
         await interaction.editReply({
             components: [container],
             flags: MessageFlags.IsComponentsV2,

@@ -5,9 +5,9 @@ import { parseConfig } from '@/src/utils.js';
 import * as mcServerApi from './mc-server-api.js';
 
 const cfg = parseConfig();
-const START_PING_DELAY = cfg.serverStart.delay * 1000;
-const START_PING_INTERVAL_MS = cfg.serverStart.mcStartPingInterval * 1000;
-const START_PING_DURATION_MS = cfg.serverStart.mcStartPingDuration * 1000;
+const START_PING_DELAY = cfg.mcServer.serverStart.delay * 1000;
+const START_PING_INTERVAL_MS = cfg.mcServer.serverStart.mcStartPingInterval * 1000;
+const START_PING_DURATION_MS = cfg.mcServer.serverStart.mcStartPingDuration * 1000;
 
 const data = new SlashCommandBuilder()
                 .setName('serverstart')

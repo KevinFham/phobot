@@ -8,11 +8,3 @@ DISCORD_TOKEN=""
 
 # Discord Server ID (Enable Developer Mode)
 GOOPSERVER_ID=""
-
-# Server Machine
-SERVER_MAC_ADDR=""
-SERVER_IP_ADDR=""
-
-# Goopcraft Minecraft Server Docker
-GOOPCRAFT_SERVER_ADDR=""
-GOOPCRAFT_CONTAINER_NAME=""
