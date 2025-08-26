@@ -13,6 +13,7 @@ Clone the repo:
 
 ```bash
 git clone https://github.com/KevinFham/phobot.git
+cd phobot
 pnpm install
 ```
 
