@@ -11,7 +11,7 @@
         "prepare": "ts-patch install -s",
         "dev": "NODE_ENV=development npx tsx watch .",
         "build": "rm -rf build && tspc -p tsconfig.json",
-        "staging": "NODE_ENV=staging node build/main.js",
+        "staging": "NODE_ENV=staging node build/src/main.js",
 		"register": "node deploy-commands.js",
 		"register-global": "node deploy-commands.js --global",
 		"deploy": "NODE_ENV=production pm2 start main.js"

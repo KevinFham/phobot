@@ -40,10 +40,10 @@ const rest = new REST().setToken(process.env['DISCORD_TOKEN']);
     try {
         console.log(`Refreshing ${commands.length} application (/) commands...`);
         commands.forEach(cmd => console.log(`- ${cmd.name}`));
-        const data  = await rest.put(
+        const data = await rest.put(
             deploymentRoute,
             { body: commands },
-        );
+        ) as Object;
         if (data && 'length' in data) {
             console.log(`Successfully reloaded ${data.length} application (/) commands.`);
         } else {

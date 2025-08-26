@@ -8,11 +8,11 @@ const execute = async (interaction: CommandInteraction) => {
     if (!interaction.isChatInputCommand()) { console.log('Not a ChatInputCommand interaction. Returning.'); return; }
 
     const phobotClient = interaction.client
-    const command = (phobotClient as PhobotClient).commands.get(interaction.commandName);
+    const command = (phobotClient as PhobotClient).commands.get(interaction.commandName) as { data: string, execute: Function };
     if (!command) { console.error(`No command matching ${interaction.commandName} was found.`); return; }
 
     try {
-        if (command && 'execute' in command) {
+        if ('execute' in command) {
             await command.execute(interaction);
         } else {
             console.log('No "execute" property found in command');
