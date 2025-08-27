@@ -15,7 +15,7 @@ if (!process.env['PUBLIC_KEY']) { required.push('PUBLIC_KEY'); }
 if (required.length > 0) {
     console.log('Missing Env variables for: ');
     required.forEach(e => console.log(`- ${e}`))
-    process.exit(0);
+    process.exit(1);
 }
 
 const client = new PhobotClient({ intents: [

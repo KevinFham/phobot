@@ -2,7 +2,8 @@ import 'dotenv/config';
 import type { UserContextMenuCommandInteraction } from 'discord.js';
 import { SlashCommandBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
 import { parseConfig } from '@/src/utils.js';
-import * as mcServerApi from './mc-server-api.js';
+import * as mcServerApi from './api/mc-server-api.js';
+import * as vpsApi from './api/vps-api.js';
 
 const cfg = parseConfig();
 const START_PING_DELAY = cfg.mcServer.serverStart.delay * 1000;
@@ -19,6 +20,7 @@ async function execute(interaction: UserContextMenuCommandInteraction) {
     const res = await mcServerApi.startMinecraftServer();
     if (res.message.includes("Server is down because machine is down")) {
         await mcServerApi.startMachine();
+        await vpsApi.startVps();
         await interaction.reply('Starting machine! View status using `/serverstatus`');
 
         setTimeout(() => {}, START_PING_DELAY);
@@ -44,6 +46,10 @@ async function execute(interaction: UserContextMenuCommandInteraction) {
     } else {
         res.message.replace("online", "**online**");
         res.message.replace("starting up", "**starting up**");
+
+        if ( res.code === 0 ) {
+            await vpsApi.startVps();
+        }
 
         await interaction.reply(res.message + " View status using `/serverstatus`");
     }

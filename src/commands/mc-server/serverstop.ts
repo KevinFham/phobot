@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import type { UserContextMenuCommandInteraction } from 'discord.js';
 import { SlashCommandBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
-import * as mcServerApi from './mc-server-api.js';
+import * as mcServerApi from './api/mc-server-api.js';
+import * as vpsApi from './api/vps-api.js';
 
 const data = new SlashCommandBuilder()
                 .setName('serverstop')
@@ -14,6 +15,10 @@ async function execute (interaction: UserContextMenuCommandInteraction) {
     res.message.replace("starting up", "**starting up**");
     res.message.replace("shut down", "**shut down**");
     res.message.replace("shutting down", "**shutting down**");
+
+    if ( res.code === 0 ) {
+        await vpsApi.stopVps();
+    }
 
     await interaction.reply(res.message);
 }

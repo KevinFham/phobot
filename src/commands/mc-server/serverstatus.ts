@@ -2,7 +2,8 @@ import 'dotenv/config';
 import type { UserContextMenuCommandInteraction } from 'discord.js';
 import { SlashCommandBuilder, ContainerBuilder, ApplicationIntegrationType, InteractionContextType, MessageFlags } from 'discord.js';
 import { parseConfig } from '@/src/utils.js'
-import * as mcServerApi from './mc-server-api.js';
+import * as mcServerApi from './api/mc-server-api.js';
+import * as vpsApi from './api/vps-api.js';
 
 const cfg = parseConfig();
 const SERVER_STATUS_REFRESH_MS = cfg.msgRefreshRate.mcStatusRefreshInterval * 1000;
@@ -24,11 +25,11 @@ const StatusDiscordEmoji = {
     "ERROR": ":no_entry_sign:",
 }
 
-function printOnlinePlayers( statusObj: { machineStatus: ServerStatus, mcServerStatus: ServerStatus, mcServerPlayers: string[] } ) {
+function printOnlinePlayers( mcStat: ServerStatus, mcPlayers: string[] ) {
     let responseStr = "";
-    if (statusObj.mcServerStatus == ServerStatus.ACTIVE) {
-        if (statusObj.mcServerPlayers.length > 0) {
-            statusObj.mcServerPlayers.forEach(playerUname => responseStr += `\n> \`${playerUname}\``);
+    if (mcStat == ServerStatus.ACTIVE) {
+        if (mcPlayers.length > 0) {
+            mcPlayers.forEach((playerUname: string) => responseStr += `\n> \`${playerUname}\``);
         } else {
             return "\n`No players connected.`";
         }
@@ -47,10 +48,12 @@ async function execute (interaction: UserContextMenuCommandInteraction) {
     var serverStatusObj: {
         machineStatus: ServerStatus,
         mcServerStatus: ServerStatus,
+        vpsStatus: ServerStatus,
         mcServerPlayers: string[],
     } = {
         machineStatus: ServerStatus.UNKNOWN,
         mcServerStatus: ServerStatus.UNKNOWN,
+        vpsStatus: ServerStatus.STOPPED,
         mcServerPlayers: [],
     }
 
@@ -85,6 +88,13 @@ async function execute (interaction: UserContextMenuCommandInteraction) {
 
         }
 
+        const vpsRes = await vpsApi.getVpsStatus();
+        if (vpsRes.code === 0) {
+            serverStatusObj.vpsStatus = ServerStatus.STARTING;
+        } else {
+            serverStatusObj.vpsStatus = ServerStatus.STOPPED;
+        }
+
         // Build and send container
         const container = new ContainerBuilder()
             .setAccentColor(0x0099FF)
@@ -97,7 +107,7 @@ async function execute (interaction: UserContextMenuCommandInteraction) {
                 section => section
                     .addTextDisplayComponents(
                         textDisplay => textDisplay
-                            .setContent(`**Server IP**\n\`${cfg.mcServer.mcServerAddr}\``),
+                            .setContent(`**Server IP**\n\`${cfg.mcServer.mcServerAddr}\` ${StatusDiscordEmoji[serverStatusObj.vpsStatus]} `),
                         textDisplay => textDisplay
                             .setContent("**Machine**\n" + serverStatusObj.machineStatus + "  " + StatusDiscordEmoji[serverStatusObj.machineStatus]),
                         textDisplay => textDisplay
@@ -111,7 +121,7 @@ async function execute (interaction: UserContextMenuCommandInteraction) {
             )
             .addTextDisplayComponents(
                 textDisplay => textDisplay
-                    .setContent("**Currently Online**" + printOnlinePlayers(serverStatusObj)),
+                    .setContent("**Currently Online**" + printOnlinePlayers(serverStatusObj.mcServerStatus, serverStatusObj.mcServerPlayers)),
             );
 
         await interaction.editReply({

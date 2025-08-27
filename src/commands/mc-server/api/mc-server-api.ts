@@ -12,7 +12,7 @@ export interface MinecraftServerStatusResponse extends GenericServerResponse {
 };
 
 export async function startMachine(): Promise<GenericServerResponse> {
-    return new Promise( async function(resolve, reject) {
+    return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
                 method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
@@ -29,7 +29,7 @@ export async function startMachine(): Promise<GenericServerResponse> {
 }
 
 export async function getMachineStatus(): Promise<GenericServerResponse> {
-    return new Promise( async function(resolve, reject) {
+    return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
                 method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
@@ -46,7 +46,7 @@ export async function getMachineStatus(): Promise<GenericServerResponse> {
 }
 
 export async function startMinecraftServer(): Promise<GenericServerResponse> {
-    return new Promise( async function(resolve, reject) {
+    return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
                 method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
@@ -63,7 +63,7 @@ export async function startMinecraftServer(): Promise<GenericServerResponse> {
 }
 
 export async function getMinecraftServerStatus(): Promise<MinecraftServerStatusResponse> {
-    return new Promise( async function(resolve, reject) {
+    return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
                 method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
@@ -80,7 +80,7 @@ export async function getMinecraftServerStatus(): Promise<MinecraftServerStatusR
 }
 
 export async function stopMinecraftServer(): Promise<GenericServerResponse> {
-    return new Promise( async function(resolve, reject) {
+    return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
                 method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
