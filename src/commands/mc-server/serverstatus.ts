@@ -90,7 +90,7 @@ async function execute (interaction: ChatInputCommandInteraction) {
 
         const vpsRes = await vpsApi.getVpsStatus();
         if (vpsRes.code === 0) {
-            serverStatusObj.vpsStatus = ServerStatus.STARTING;
+            serverStatusObj.vpsStatus = ServerStatus.ACTIVE;
         } else {
             serverStatusObj.vpsStatus = ServerStatus.STOPPED;
         }

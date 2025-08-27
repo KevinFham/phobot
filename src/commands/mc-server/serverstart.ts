@@ -24,7 +24,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
         await interaction.reply('Starting machine! View status using `/serverstatus`');
 
         setTimeout(() => {}, START_PING_DELAY);
-        var timeoutID: ReturnType<typeof setTimeout>;
+        var timeoutID: ReturnType<typeof setTimeout> | undefined;
 
         // Repeatedly ping machine until mc server becomes accessible
         const refreshIntervalID = setInterval(async () => {
@@ -33,12 +33,13 @@ async function execute(interaction: ChatInputCommandInteraction) {
                 await mcServerApi.startMinecraftServer();
                 await interaction.followUp('Starting minecraft server!');
                 clearInterval(refreshIntervalID);
-                clearTimeout(timeoutID);
+                if (timeoutID) { clearTimeout(timeoutID); }
             }
         }, START_PING_INTERVAL_MS);
 
         // Timeout response
         timeoutID = setTimeout(async () => {
+            timeoutID = undefined;
             await interaction.followUp(`Minecraft server startup sequence timed out! Run \`/serverstart\` again or join the server at \`${cfg.mcServer.mcServerAddr}\` to start it up manually.`);
             clearInterval(refreshIntervalID);
         }, START_PING_DURATION_MS);
