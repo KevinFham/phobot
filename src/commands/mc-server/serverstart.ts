@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import type { UserContextMenuCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { SlashCommandBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
 import { parseConfig } from '@/src/utils.js';
 import * as mcServerApi from './api/mc-server-api.js';
@@ -16,7 +16,7 @@ const data = new SlashCommandBuilder()
                 .setIntegrationTypes([ ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall ])
                 .setContexts([ InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ]);
 
-async function execute(interaction: UserContextMenuCommandInteraction) {
+async function execute(interaction: ChatInputCommandInteraction) {
     const res = await mcServerApi.startMinecraftServer();
     if (res.message.includes("Server is down because machine is down")) {
         await mcServerApi.startMachine();

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import type { UserContextMenuCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { SlashCommandBuilder, ContainerBuilder, ApplicationIntegrationType, InteractionContextType, MessageFlags } from 'discord.js';
 import { parseConfig } from '@/src/utils.js'
 import * as mcServerApi from './api/mc-server-api.js';
@@ -44,7 +44,7 @@ const data = new SlashCommandBuilder()
                 .setIntegrationTypes([ ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall ])
                 .setContexts([ InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ]);
 
-async function execute (interaction: UserContextMenuCommandInteraction) {
+async function execute (interaction: ChatInputCommandInteraction) {
     var serverStatusObj: {
         machineStatus: ServerStatus,
         mcServerStatus: ServerStatus,
