@@ -62,7 +62,7 @@ export async function getMinecraftServerList(): Promise<GenericServerResponse> {
     });
 }
 
-export async function startMinecraftServer(mcServerAlias: string): Promise<GenericServerResponse> {
+export async function startMinecraftServer(mcServerAlias?: string): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
@@ -79,7 +79,7 @@ export async function startMinecraftServer(mcServerAlias: string): Promise<Gener
     });
 }
 
-export async function getMinecraftServerStatus(mcServerAlias: string): Promise<MinecraftServerStatusResponse> {
+export async function getMinecraftServerStatus(mcServerAlias?: string): Promise<MinecraftServerStatusResponse> {
     return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
@@ -96,7 +96,7 @@ export async function getMinecraftServerStatus(mcServerAlias: string): Promise<M
     });
 }
 
-export async function stopMinecraftServer(mcServerAlias: string): Promise<GenericServerResponse> {
+export async function stopMinecraftServer(mcServerAlias?: string): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {

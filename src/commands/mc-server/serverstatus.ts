@@ -2,7 +2,7 @@ import 'dotenv/config';
 import type { ChatInputCommandInteraction, StringSelectMenuInteraction } from 'discord.js';
 import { SlashCommandBuilder, ContainerBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ApplicationIntegrationType, InteractionContextType, MessageFlags } from 'discord.js';
 import type { ServerStatusObject } from '@/src/commands/mc-server/utils.js';
-import { ServerStatus, StatusEmojiDict } from '@/src/commands/mc-server/utils.js';
+import { ServerStatus, StatusEmojiDict, ServerList } from '@/src/commands/mc-server/utils.js';
 import { parseConfig } from '@/src/utils.js';
 import * as mcServerApi from './api/mc-server-api.js';
 import * as vpsApi from './api/vps-api.js';
@@ -10,11 +10,6 @@ import * as vpsApi from './api/vps-api.js';
 const cfg = parseConfig();
 const SERVER_STATUS_REFRESH_MS = cfg.msgRefreshRate.mcStatusRefreshInterval * 1000;
 const STATUS_REFRESH_DURATION_MS = cfg.msgRefreshRate.mcStatusRefreshDuration * 1000;
-const SERVER_LIST = Object.assign({}, ...cfg.mcServer.mcServerAliases.map((key: string) => ({[key]: {
-    name: cfg.mcServer.mcServerSelections[cfg.mcServer.mcServerAliases.indexOf(key)],
-    description: cfg.mcServer.mcServerSelectionDescs[cfg.mcServer.mcServerAliases.indexOf(key)],
-    serverAddr: cfg.mcServer.mcServerAddrs[cfg.mcServer.mcServerAliases.indexOf(key)]
-}})));
 const liveStatusDaemons: { [id: string]: { intervalID: ReturnType<typeof setInterval>, timeoutID: ReturnType<typeof setTimeout> } } = {};
 
 function printOnlinePlayers( mcStat: ServerStatus, mcPlayers: string[] ) {
@@ -71,90 +66,102 @@ async function getServerStatusObj( mcServerAlias: string ): Promise<ServerStatus
 }
 
 async function buildMcStatusContainer( mcServerAlias?: string ): Promise<ContainerBuilder> {
-    if (mcServerAlias) {
-        const serverStatusObj = await getServerStatusObj(mcServerAlias);
+    const serverList = ServerList.getList();
+    if (serverList) {
+        if (mcServerAlias) {
+            const serverStatusObj = await getServerStatusObj(mcServerAlias);
+            const serverData = ServerList.getDataFromAlias(mcServerAlias);
 
-        return new ContainerBuilder()
-            .setAccentColor(0x0099FF)
-            .addTextDisplayComponents(
-                textDisplay => textDisplay
-                    .setContent(`**Choose Server to see status:**`),
-            )
-            .addActionRowComponents(
-                actionRow => actionRow
-                    .setComponents(
-                        new StringSelectMenuBuilder()
-                            .setCustomId('mcServerLiveStatusChoice')
-                            .setPlaceholder('Choose a server...')
-                            .addOptions(
-                                Array(Object.keys(SERVER_LIST).length).fill(undefined).map((_, idx: number) => {
-                                    const key: string | undefined = Object.keys(SERVER_LIST)[idx];
-                                    if (key) {
-                                        return new StringSelectMenuOptionBuilder()
-                                            .setLabel(SERVER_LIST[key].name)
-                                            .setDescription(SERVER_LIST[key].description)
-                                            .setValue(key)
-                                            .setDefault((key === mcServerAlias) ? true : false)
-                                    } else {
-                                        return new StringSelectMenuOptionBuilder().setLabel("Failed to fetch server").setValue("null")
-                                    }
-                                })
-                        ),
-                    ),
+            return new ContainerBuilder()
+                .setAccentColor(0x0099FF)
+                .addTextDisplayComponents(
+                    textDisplay => textDisplay
+                        .setContent(`**Choose Server to see status:**`),
                 )
-            .addTextDisplayComponents(
-                textDisplay => textDisplay
-                    .setContent(`**${SERVER_LIST[mcServerAlias].name} Server LIVE Status**`),
-            )
-            .addSeparatorComponents(separator => separator)
-            .addSectionComponents(
-                section => section
-                    .addTextDisplayComponents(
-                        textDisplay => textDisplay
-                            .setContent(`**Server IP**\n\`${SERVER_LIST[mcServerAlias].serverAddr}\` ${StatusEmojiDict[serverStatusObj.vpsStatus]} `),
-                        textDisplay => textDisplay
-                            .setContent("**Machine**\n" + serverStatusObj.machineStatus + "  " + StatusEmojiDict[serverStatusObj.machineStatus]),
-                        textDisplay => textDisplay
-                            .setContent("**Minecraft Server**\n" + serverStatusObj.mcServerStatus + "  " + StatusEmojiDict[serverStatusObj.mcServerStatus]),
+                .addActionRowComponents(
+                    actionRow => actionRow
+                        .setComponents(
+                            new StringSelectMenuBuilder()
+                                .setCustomId('mcServerLiveStatusChoice')
+                                .setPlaceholder('Choose a server...')
+                                .addOptions(
+                                    Array(Object.keys(serverList).length).fill(undefined).map((_, idx: number) => {
+                                        const key: string | undefined = Object.keys(serverList)[idx];
+                                        if (key) {
+                                            const currentServerData = ServerList.getDataFromAlias(key);
+                                            return new StringSelectMenuOptionBuilder()
+                                                .setLabel(currentServerData!.name)
+                                                .setDescription(currentServerData!.description)
+                                                .setValue(key)
+                                                .setDefault((key === mcServerAlias) ? true : false)
+                                        } else {
+                                            return new StringSelectMenuOptionBuilder().setLabel("Failed to fetch server").setValue("null")
+                                        }
+                                    })
+                            ),
+                        ),
                     )
-                    .setThumbnailAccessory(
-                        thumbnail => thumbnail
-                            .setDescription('two black dudes kissing')
-                            .setURL('https://i.pinimg.com/736x/6e/da/25/6eda251c8069ca80231fac522127bbf4.jpg')
-                    ),
-            )
-            .addTextDisplayComponents(
-                textDisplay => textDisplay
-                    .setContent("**Currently Online**" + printOnlinePlayers(serverStatusObj.mcServerStatus, serverStatusObj.mcServerPlayers)),
-            );
+                .addTextDisplayComponents(
+                    textDisplay => textDisplay
+                        .setContent(`**${serverData!.name} Server LIVE Status**`),
+                )
+                .addSeparatorComponents(separator => separator)
+                .addSectionComponents(
+                    section => section
+                        .addTextDisplayComponents(
+                            textDisplay => textDisplay
+                                .setContent(`**Server IP**\n\`${serverData!.serverAddr}\` ${StatusEmojiDict[serverStatusObj.vpsStatus]} `),
+                            textDisplay => textDisplay
+                                .setContent("**Machine**\n" + serverStatusObj.machineStatus + "  " + StatusEmojiDict[serverStatusObj.machineStatus]),
+                            textDisplay => textDisplay
+                                .setContent("**Minecraft Server**\n" + serverStatusObj.mcServerStatus + "  " + StatusEmojiDict[serverStatusObj.mcServerStatus]),
+                        )
+                        .setThumbnailAccessory(
+                            thumbnail => thumbnail
+                                .setDescription('two black dudes kissing')
+                                .setURL('https://i.pinimg.com/736x/6e/da/25/6eda251c8069ca80231fac522127bbf4.jpg')
+                        ),
+                )
+                .addTextDisplayComponents(
+                    textDisplay => textDisplay
+                        .setContent("**Currently Online**" + printOnlinePlayers(serverStatusObj.mcServerStatus, serverStatusObj.mcServerPlayers)),
+                );
+        } else {
+            return new ContainerBuilder()
+                .setAccentColor(0x0099FF)
+                .addTextDisplayComponents(
+                    textDisplay => textDisplay
+                        .setContent(`**Choose Server to see status:**`),
+                )
+                .addActionRowComponents(
+                    actionRow => actionRow
+                        .setComponents(
+                            new StringSelectMenuBuilder()
+                                .setCustomId('mcServerLiveStatusChoice')
+                                .setPlaceholder('Choose a server...')
+                                .addOptions(
+                                    Array(Object.keys(serverList).length).fill(undefined).map((_, idx: number) => {
+                                        const key: string | undefined = Object.keys(serverList)[idx];
+                                        if (key) {
+                                            const currentServerData = ServerList.getDataFromAlias(key);
+                                            return new StringSelectMenuOptionBuilder()
+                                                .setLabel(currentServerData!.name)
+                                                .setDescription(currentServerData!.description)
+                                                .setValue(key)
+                                        } else {
+                                            return new StringSelectMenuOptionBuilder().setLabel("Failed to fetch server").setValue("null")
+                                        }
+                                    })
+                            ),
+                        ),
+                    )
+        }
     } else {
         return new ContainerBuilder()
-            .setAccentColor(0x0099FF)
             .addTextDisplayComponents(
                 textDisplay => textDisplay
-                    .setContent(`**Choose Server to see status:**`),
+                    .setContent("Server list is **empty**!"),
             )
-            .addActionRowComponents(
-                actionRow => actionRow
-                    .setComponents(
-                        new StringSelectMenuBuilder()
-                            .setCustomId('mcServerLiveStatusChoice')
-                            .setPlaceholder('Choose a server...')
-                            .addOptions(
-                                Array(Object.keys(SERVER_LIST).length).fill(undefined).map((_, idx: number) => {
-                                    const key: string | undefined = Object.keys(SERVER_LIST)[idx];
-                                    if (key) {
-                                        return new StringSelectMenuOptionBuilder()
-                                            .setLabel(SERVER_LIST[key].name)
-                                            .setDescription(SERVER_LIST[key].description)
-                                            .setValue(key)
-                                    } else {
-                                        return new StringSelectMenuOptionBuilder().setLabel("Failed to fetch server").setValue("null")
-                                    }
-                                })
-                        ),
-                    ),
-                )
     }
 }
 
