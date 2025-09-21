@@ -65,7 +65,7 @@ async function getServerStatusObj( mcServerAlias: string ): Promise<ServerStatus
     return serverStatusObj;
 }
 
-async function buildMcStatusContainer( mcServerAlias?: string ): Promise<ContainerBuilder> {
+async function buildMcStatusContainer( mcServerAlias?: string, staleStatus: boolean = false): Promise<ContainerBuilder> {
     const serverList = ServerList.getList();
     if (serverList) {
         if (mcServerAlias) {
@@ -103,7 +103,7 @@ async function buildMcStatusContainer( mcServerAlias?: string ): Promise<Contain
                     )
                 .addTextDisplayComponents(
                     textDisplay => textDisplay
-                        .setContent(`**${serverData!.name} Server LIVE Status**`),
+                        .setContent(`**${serverData!.name} Server ${staleStatus ? "(STALE :electric_plug:)" : "(LIVE :satellite:)"} Status**`),
                 )
                 .addSeparatorComponents(separator => separator)
                 .addSectionComponents(
@@ -195,7 +195,14 @@ async function stringSelectMenuRespond(interaction: StringSelectMenuInteraction)
         });
     }, SERVER_STATUS_REFRESH_MS);
 
-    var timeoutID = setTimeout(() => { clearInterval(refreshIntervalID); delete liveStatusDaemons[interaction!.message.id]; }, STATUS_REFRESH_DURATION_MS);
+    var timeoutID = setTimeout(async () => { 
+        clearInterval(refreshIntervalID); 
+        delete liveStatusDaemons[interaction!.message.id]; 
+        await interaction.editReply({
+             components: [await buildMcStatusContainer(interaction.values[0], true)],
+             flags: MessageFlags.IsComponentsV2,
+         });
+    }, STATUS_REFRESH_DURATION_MS);
 
     // Track live status loop
     liveStatusDaemons[interaction!.message.id] = { intervalID: refreshIntervalID, timeoutID: timeoutID };
