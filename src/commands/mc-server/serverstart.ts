@@ -29,7 +29,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
 async function stringSelectMenuRespond(interaction: StringSelectMenuInteraction) {
     const serverData: ServerListEntry | undefined = ServerList.getDataFromAlias(interaction.values[0]);
     const res = await mcServerApi.startMinecraftServer(interaction.values[0]);
-    if (res.message.includes("Server is down because machine is down")) {
+    if (res.message.includes("Minecraft server is down because machine is down")) {
         await mcServerApi.startMachine();
         await vpsApi.startVps();
         await interaction.update({
