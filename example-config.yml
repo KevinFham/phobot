@@ -10,7 +10,18 @@ apiServer:
 
 # Minecraft Server Config
 mcServer:
-  mcServerAddr: 'play.addr.mc'
+  mcServerSelections:
+  - 'Survival World'
+  - 'Creative World'
+  mcServerSelectionDescs:
+  - 'Forge with friends'
+  - 'Testing world'
+  mcServerAliases:
+  - 'survival-world'
+  - 'creative-world'
+  mcServerAddr: 
+  - 'play1.addr.mc'
+  - 'play2.addr.mc'
   serverStart:
     # In seconds
     delay: 10
