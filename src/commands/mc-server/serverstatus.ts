@@ -1,29 +1,21 @@
 import 'dotenv/config';
-import type { ChatInputCommandInteraction } from 'discord.js';
-import { SlashCommandBuilder, ContainerBuilder, ApplicationIntegrationType, InteractionContextType, MessageFlags } from 'discord.js';
-import { parseConfig } from '@/src/utils.js'
+import type { ChatInputCommandInteraction, StringSelectMenuInteraction } from 'discord.js';
+import { SlashCommandBuilder, ContainerBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ApplicationIntegrationType, InteractionContextType, MessageFlags } from 'discord.js';
+import type { ServerStatusObject } from '@/src/commands/mc-server/utils.js';
+import { ServerStatus, StatusEmojiDict } from '@/src/commands/mc-server/utils.js';
+import { parseConfig } from '@/src/utils.js';
 import * as mcServerApi from './api/mc-server-api.js';
 import * as vpsApi from './api/vps-api.js';
 
 const cfg = parseConfig();
 const SERVER_STATUS_REFRESH_MS = cfg.msgRefreshRate.mcStatusRefreshInterval * 1000;
 const STATUS_REFRESH_DURATION_MS = cfg.msgRefreshRate.mcStatusRefreshDuration * 1000;
-
-enum ServerStatus {
-    STOPPED = "STOPPED",
-    STARTING = "STARTING",
-    ACTIVE = "ACTIVE",
-    UNKNOWN = "UNKNOWN",
-    ERROR = "ERROR",
-};
-
-const StatusDiscordEmoji = {
-    "STOPPED": ":no_entry:",
-    "STARTING": ":stopwatch:",
-    "ACTIVE": ":white_check_mark:",
-    "UNKNOWN": ":question:",
-    "ERROR": ":no_entry_sign:",
-}
+const SERVER_LIST = Object.assign({}, ...cfg.mcServer.mcServerAliases.map((key: string) => ({[key]: {
+    name: cfg.mcServer.mcServerSelections[cfg.mcServer.mcServerAliases.indexOf(key)],
+    description: cfg.mcServer.mcServerSelectionDescs[cfg.mcServer.mcServerAliases.indexOf(key)],
+    serverAddr: cfg.mcServer.mcServerAddrs[cfg.mcServer.mcServerAliases.indexOf(key)]
+}})));
+const liveStatusDaemons: { [id: string]: { intervalID: ReturnType<typeof setInterval>, timeoutID: ReturnType<typeof setTimeout> } } = {};
 
 function printOnlinePlayers( mcStat: ServerStatus, mcPlayers: string[] ) {
     let responseStr = "";
@@ -37,81 +29,93 @@ function printOnlinePlayers( mcStat: ServerStatus, mcPlayers: string[] ) {
     return responseStr;
 }
 
-
-const data = new SlashCommandBuilder()
-                .setName('serverstatus')
-                .setDescription('View the live status of the minecraft server.')
-                .setIntegrationTypes([ ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall ])
-                .setContexts([ InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ]);
-
-async function execute (interaction: ChatInputCommandInteraction) {
-    var serverStatusObj: {
-        machineStatus: ServerStatus,
-        mcServerStatus: ServerStatus,
-        vpsStatus: ServerStatus,
-        mcServerPlayers: string[],
-    } = {
+async function getServerStatusObj( mcServerAlias: string ): Promise<ServerStatusObject> {
+    var serverStatusObj: ServerStatusObject = {
         machineStatus: ServerStatus.UNKNOWN,
         mcServerStatus: ServerStatus.UNKNOWN,
         vpsStatus: ServerStatus.STOPPED,
         mcServerPlayers: [],
     }
 
-    await interaction.deferReply();
+    const res = await mcServerApi.getMinecraftServerStatus(mcServerAlias);
+    if (res.serverStat.includes("down")) { 
+        serverStatusObj.machineStatus = ServerStatus.STOPPED;
+        serverStatusObj.mcServerStatus = ServerStatus.STOPPED;
+    } else {
+        serverStatusObj.machineStatus = ServerStatus.ACTIVE;
 
-    // Update response in a loop
-    var refreshIntervalID = setInterval(async () => {
+        if (res.serverStat.includes("running")) {
+            serverStatusObj.mcServerStatus = ServerStatus.ACTIVE;
+            serverStatusObj.mcServerPlayers = res.players;
 
-        // Info gather
-        const res = await mcServerApi.getMinecraftServerStatus();
-        if (res.serverStat.includes("down")) { 
-            serverStatusObj.machineStatus = ServerStatus.STOPPED;
+        } else if (res.serverStat.includes("starting")) {
+            serverStatusObj.mcServerStatus = ServerStatus.STARTING;
+
+        } else if (res.serverStat.includes("error")) {
+            serverStatusObj.mcServerStatus = ServerStatus.ERROR;
+
+        } else if (res.serverStat.includes("exited")) {
             serverStatusObj.mcServerStatus = ServerStatus.STOPPED;
+        } 
+        //else, MC Server status unknown
+    }
 
-        } else {
-            serverStatusObj.machineStatus = ServerStatus.ACTIVE;
+    const vpsRes = await vpsApi.getVpsStatus();
+    if (vpsRes.code === 0) {
+        serverStatusObj.vpsStatus = ServerStatus.ACTIVE;
+    } else {
+        serverStatusObj.vpsStatus = ServerStatus.STOPPED;
+    }
 
-            if (res.serverStat.includes("running")) {
-                serverStatusObj.mcServerStatus = ServerStatus.ACTIVE;
-                serverStatusObj.mcServerPlayers = res.players;
+    return serverStatusObj;
+}
 
-            } else if (res.serverStat.includes("starting")) {
-                serverStatusObj.mcServerStatus = ServerStatus.STARTING;
+async function buildMcStatusContainer( mcServerAlias?: string ): Promise<ContainerBuilder> {
+    if (mcServerAlias) {
+        const serverStatusObj = await getServerStatusObj(mcServerAlias);
 
-            } else if (res.serverStat.includes("error")) {
-                serverStatusObj.mcServerStatus = ServerStatus.ERROR;
-
-            } else if (res.serverStat.includes("exited")) {
-                serverStatusObj.mcServerStatus = ServerStatus.STOPPED;
-            } 
-            //else, MC Server status unknown
-
-        }
-
-        const vpsRes = await vpsApi.getVpsStatus();
-        if (vpsRes.code === 0) {
-            serverStatusObj.vpsStatus = ServerStatus.ACTIVE;
-        } else {
-            serverStatusObj.vpsStatus = ServerStatus.STOPPED;
-        }
-
-        // Build and send container
-        const container = new ContainerBuilder()
+        return new ContainerBuilder()
             .setAccentColor(0x0099FF)
             .addTextDisplayComponents(
                 textDisplay => textDisplay
-                    .setContent(`**Goopcraft Server LIVE Status**`),
+                    .setContent(`**Choose Server to see status:**`),
+            )
+            .addActionRowComponents(
+                actionRow => actionRow
+                    .setComponents(
+                        new StringSelectMenuBuilder()
+                            .setCustomId('mcServerLiveStatusChoice')
+                            .setPlaceholder('Choose a server...')
+                            .addOptions(
+                                Array(Object.keys(SERVER_LIST).length).fill(undefined).map((_, idx: number) => {
+                                    const key: string | undefined = Object.keys(SERVER_LIST)[idx];
+                                    if (key) {
+                                        return new StringSelectMenuOptionBuilder()
+                                            .setLabel(SERVER_LIST[key].name)
+                                            .setDescription(SERVER_LIST[key].description)
+                                            .setValue(key)
+                                            .setDefault((key === mcServerAlias) ? true : false)
+                                    } else {
+                                        return new StringSelectMenuOptionBuilder().setLabel("Failed to fetch server").setValue("null")
+                                    }
+                                })
+                        ),
+                    ),
+                )
+            .addTextDisplayComponents(
+                textDisplay => textDisplay
+                    .setContent(`**${SERVER_LIST[mcServerAlias].name} Server LIVE Status**`),
             )
             .addSeparatorComponents(separator => separator)
             .addSectionComponents(
                 section => section
                     .addTextDisplayComponents(
                         textDisplay => textDisplay
-                            .setContent(`**Server IP**\n\`${cfg.mcServer.mcServerAddr}\` ${StatusDiscordEmoji[serverStatusObj.vpsStatus]} `),
+                            .setContent(`**Server IP**\n\`${SERVER_LIST[mcServerAlias].serverAddr}\` ${StatusEmojiDict[serverStatusObj.vpsStatus]} `),
                         textDisplay => textDisplay
-                            .setContent("**Machine**\n" + serverStatusObj.machineStatus + "  " + StatusDiscordEmoji[serverStatusObj.machineStatus]),
+                            .setContent("**Machine**\n" + serverStatusObj.machineStatus + "  " + StatusEmojiDict[serverStatusObj.machineStatus]),
                         textDisplay => textDisplay
-                            .setContent("**Minecraft Server**\n" + serverStatusObj.mcServerStatus + "  " + StatusDiscordEmoji[serverStatusObj.mcServerStatus]),
+                            .setContent("**Minecraft Server**\n" + serverStatusObj.mcServerStatus + "  " + StatusEmojiDict[serverStatusObj.mcServerStatus]),
                     )
                     .setThumbnailAccessory(
                         thumbnail => thumbnail
@@ -123,17 +127,73 @@ async function execute (interaction: ChatInputCommandInteraction) {
                 textDisplay => textDisplay
                     .setContent("**Currently Online**" + printOnlinePlayers(serverStatusObj.mcServerStatus, serverStatusObj.mcServerPlayers)),
             );
-
-        await interaction.editReply({
-            components: [container],
-            flags: MessageFlags.IsComponentsV2,
-        });
-
-    }, SERVER_STATUS_REFRESH_MS);
-
-    setTimeout(() => { clearInterval(refreshIntervalID); }, STATUS_REFRESH_DURATION_MS);
+    } else {
+        return new ContainerBuilder()
+            .setAccentColor(0x0099FF)
+            .addTextDisplayComponents(
+                textDisplay => textDisplay
+                    .setContent(`**Choose Server to see status:**`),
+            )
+            .addActionRowComponents(
+                actionRow => actionRow
+                    .setComponents(
+                        new StringSelectMenuBuilder()
+                            .setCustomId('mcServerLiveStatusChoice')
+                            .setPlaceholder('Choose a server...')
+                            .addOptions(
+                                Array(Object.keys(SERVER_LIST).length).fill(undefined).map((_, idx: number) => {
+                                    const key: string | undefined = Object.keys(SERVER_LIST)[idx];
+                                    if (key) {
+                                        return new StringSelectMenuOptionBuilder()
+                                            .setLabel(SERVER_LIST[key].name)
+                                            .setDescription(SERVER_LIST[key].description)
+                                            .setValue(key)
+                                    } else {
+                                        return new StringSelectMenuOptionBuilder().setLabel("Failed to fetch server").setValue("null")
+                                    }
+                                })
+                        ),
+                    ),
+                )
+    }
 }
 
-export { data, execute };
+
+const data = new SlashCommandBuilder()
+                .setName('serverstatus')
+                .setDescription('View the live status of the minecraft server.')
+                .setIntegrationTypes([ ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall ])
+                .setContexts([ InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ]);
+
+async function execute (interaction: ChatInputCommandInteraction) {
+    await interaction.reply({
+        components: [await buildMcStatusContainer()],
+        flags: MessageFlags.IsComponentsV2,
+    });
+}
+
+async function stringSelectMenuRespond(interaction: StringSelectMenuInteraction) {
+
+    // Kill any existing live status loops 
+    if (interaction!.message.id in liveStatusDaemons) {
+        clearInterval(liveStatusDaemons[interaction!.message.id]?.intervalID);
+        clearTimeout(liveStatusDaemons[interaction!.message.id]?.timeoutID);
+    }
+
+    await interaction.deferUpdate();
+    var refreshIntervalID = setInterval(async () => {
+        await interaction.editReply({
+            components: [await buildMcStatusContainer(interaction.values[0])],
+            flags: MessageFlags.IsComponentsV2,
+        });
+    }, SERVER_STATUS_REFRESH_MS);
+
+    var timeoutID = setTimeout(() => { clearInterval(refreshIntervalID); delete liveStatusDaemons[interaction!.message.id]; }, STATUS_REFRESH_DURATION_MS);
+
+    // Track live status loop
+    liveStatusDaemons[interaction!.message.id] = { intervalID: refreshIntervalID, timeoutID: timeoutID };
+}
+
+export { data, execute, stringSelectMenuRespond };
 
 

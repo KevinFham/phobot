@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction, StringSelectMenuInteraction } from 'discord.js';
 import { SlashCommandBuilder, ApplicationIntegrationType, InteractionContextType } from 'discord.js';
 import { parseConfig } from '@/src/utils.js';
 import * as mcServerApi from './api/mc-server-api.js';
@@ -17,7 +17,7 @@ const data = new SlashCommandBuilder()
                 .setContexts([ InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel ]);
 
 async function execute(interaction: ChatInputCommandInteraction) {
-    const res = await mcServerApi.startMinecraftServer();
+    const res = await mcServerApi.startMinecraftServer('goopcraft');
     if (res.message.includes("Server is down because machine is down")) {
         await mcServerApi.startMachine();
         await vpsApi.startVps();
@@ -30,7 +30,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
         const refreshIntervalID = setInterval(async () => {
             const status = await mcServerApi.getMachineStatus();
             if (status.code === 0) {
-                await mcServerApi.startMinecraftServer();
+                await mcServerApi.startMinecraftServer('goopcraft');
                 await interaction.followUp('Starting minecraft server!');
                 clearInterval(refreshIntervalID);
                 if (timeoutID) { clearTimeout(timeoutID); }
@@ -57,6 +57,11 @@ async function execute(interaction: ChatInputCommandInteraction) {
 
 }
 
-export { data, execute };
+async function stringSelectMenuRespond(interaction: StringSelectMenuInteraction) {
+    console.log('made it');
+    interaction.reply("test");
+}
+
+export { data, execute, stringSelectMenuRespond };
 
 
