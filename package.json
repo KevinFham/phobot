@@ -14,7 +14,7 @@
         "staging": "NODE_ENV=staging node build/src/main.js",
 		"register": "node deploy-commands.js",
 		"register-global": "node deploy-commands.js --global",
-		"deploy": "NODE_ENV=production pm2 start build/src/main.js"
+		"deploy": "NODE_ENV=production pm2 start build/src/main.js --name phobot --cron-restart=\"0 5 * * *\""
 	},
 	"dependencies": {
 		"child_process": "^1.0.2",
