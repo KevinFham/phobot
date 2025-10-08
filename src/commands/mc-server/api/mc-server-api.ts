@@ -14,8 +14,8 @@ export interface MinecraftServerStatusResponse extends GenericServerResponse {
 export async function startMachine(): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
-            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
+            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/machine?machineHostname=${cfg.mcServer.mcServerHostname}`, {
+                method: 'PUT', headers: { "Content-Type": "application/json;charset=UTF-8", },
                 body: JSON.stringify({ 'action': 'startMachine' }),
             });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
@@ -31,10 +31,7 @@ export async function startMachine(): Promise<GenericServerResponse> {
 export async function getMachineStatus(): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
-            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
-                body: JSON.stringify({ 'action': 'getMachineStatus' }),
-            });
+            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/machine?machineHostname=${cfg.mcServer.mcServerHostname}`, { method: 'GET' });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
             const payload = await res.json() as GenericServerResponse;
             resolve(payload);
@@ -48,10 +45,7 @@ export async function getMachineStatus(): Promise<GenericServerResponse> {
 export async function getMinecraftServerList(): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
-            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
-                body: JSON.stringify({ 'action': 'getMinecraftServerList' }),
-            });
+            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server/serverlist`, { method: 'GET' });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
             const payload = await res.json() as GenericServerResponse;
             resolve(payload);
@@ -65,9 +59,9 @@ export async function getMinecraftServerList(): Promise<GenericServerResponse> {
 export async function startMinecraftServer(mcServerAlias?: string): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
-            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
-                body: JSON.stringify({ 'action': 'startMinecraftServer', 'mcInstance': mcServerAlias }),
+            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server?mcInstance=${mcServerAlias}`, {
+                method: 'PUT', headers: { "Content-Type": "application/json;charset=UTF-8", },
+                body: JSON.stringify({ 'action': 'startMinecraftServer' }),
             });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
             const payload = await res.json() as GenericServerResponse;
@@ -82,10 +76,7 @@ export async function startMinecraftServer(mcServerAlias?: string): Promise<Gene
 export async function getMinecraftServerStatus(mcServerAlias?: string): Promise<MinecraftServerStatusResponse> {
     return new Promise(async function(resolve, reject) {
         try {
-            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
-                body: JSON.stringify({ 'action': 'getMinecraftServerStatus', 'mcInstance': mcServerAlias }),
-            });
+            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server?mcInstance=${mcServerAlias}`, { method: 'GET' });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
             const payload = await res.json() as MinecraftServerStatusResponse;
             resolve(payload);
@@ -99,9 +90,9 @@ export async function getMinecraftServerStatus(mcServerAlias?: string): Promise<
 export async function stopMinecraftServer(mcServerAlias?: string): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
-            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
-                body: JSON.stringify({ 'action': 'stopMinecraftServer', 'mcInstance': mcServerAlias }),
+            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/mc-server?mcInstance=${mcServerAlias}`, {
+                method: 'PUT', headers: { "Content-Type": "application/json;charset=UTF-8", },
+                body: JSON.stringify({ 'action': 'stopMinecraftServer' }),
             });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
             const payload = await res.json() as GenericServerResponse;

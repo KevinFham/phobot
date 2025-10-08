@@ -36,10 +36,6 @@ export const StatusEmojiDict = {
     "ERROR": ":no_entry_sign:",
 };
 
-//export function typedKeys<T>(o: T): (keyof T)[] {
-//    return Object.keys(o) as (keyof T)[];
-//}
-
 export namespace ServerList {
     const serverList: ServerList = Object.assign({}, ...cfg.mcServer.mcServerAliases.map((key: string) => ({[key]: {
         name: cfg.mcServer.mcServerSelections[cfg.mcServer.mcServerAliases.indexOf(key)],

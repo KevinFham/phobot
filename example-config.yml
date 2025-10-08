@@ -1,7 +1,7 @@
 # Live Message Update Config
 msgRefreshRate:
   # In seconds
-  mcStatusRefreshInterval: 2
+  mcStatusRefreshInterval: 10
   mcStatusRefreshDuration: 900
 
 # REST API Server Config
@@ -10,6 +10,7 @@ apiServer:
 
 # Minecraft Server Config
 mcServer:
+  mcServerHostname: 'minecraft.server'
   mcServerSelections:
   - 'Survival World'
   - 'Creative World'

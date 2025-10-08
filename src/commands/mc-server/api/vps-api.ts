@@ -11,7 +11,7 @@ export async function startVps(): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/vps`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
+                method: 'PUT', headers: { "Content-Type": "application/json;charset=UTF-8", },
                 body: JSON.stringify({ 'action': 'startVps' }),
             });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
@@ -27,10 +27,7 @@ export async function startVps(): Promise<GenericServerResponse> {
 export async function getVpsStatus(): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
-            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/vps`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
-                body: JSON.stringify({ 'action': 'getVpsStatus' }),
-            });
+            const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/vps`, { method: 'GET' });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
             const payload = await res.json() as GenericServerResponse;
             resolve(payload);
@@ -45,7 +42,7 @@ export async function stopVps(): Promise<GenericServerResponse> {
     return new Promise(async function(resolve, reject) {
         try {
             const res = await fetch(`http://${cfg.apiServer.serverHostName}/api/vps`, {
-                method: 'POST', headers: { "Content-Type": "application/json;charset=UTF-8", },
+                method: 'PUT', headers: { "Content-Type": "application/json;charset=UTF-8", },
                 body: JSON.stringify({ 'action': 'stopVps' }),
             });
             if (!res.ok) { throw new Error(`Response returned ${res.status}: ${res}`); }
