@@ -118,8 +118,8 @@ async function buildMcStatusContainer( mcServerAlias?: string, staleStatus: bool
                         )
                         .setThumbnailAccessory(
                             thumbnail => thumbnail
-                                .setDescription('two black dudes kissing')
-                                .setURL('https://i.pinimg.com/736x/6e/da/25/6eda251c8069ca80231fac522127bbf4.jpg')
+                                .setDescription('grass block')
+                                .setURL('https://minecraft.wiki/images/Grass_Block_JE7_BE6.png')
                         ),
                 )
                 .addTextDisplayComponents(
