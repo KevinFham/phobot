@@ -12,8 +12,8 @@
         "dev": "NODE_ENV=development npx tsx watch .",
         "build": "rm -rf build && tspc -p tsconfig.json",
         "staging": "NODE_ENV=staging node build/src/main.js",
-		"register": "node deploy-commands.js",
-		"register-global": "node deploy-commands.js --global",
+		"register": "npx tsx deploy-commands.ts",
+		"register-global": "npx tsx deploy-commands.ts --global",
 		"deploy": "NODE_ENV=production pm2 start build/src/main.js --name phobot --cron-restart=\"0 5 * * *\""
 	},
 	"dependencies": {

@@ -17,7 +17,7 @@ const deploymentRoute = GLOBAL_DEPLOY ?
 
 // Gather All Commands from commands/ folder
 const commands = [];
-const foldersPath = path.join(__dirname, 'commands');
+const foldersPath = path.join(__dirname, '/src/commands');
 const commandFolders = fs.readdirSync(foldersPath);
 for (const folder of commandFolders) {
 	const commandsPath = path.join(foldersPath, folder);
